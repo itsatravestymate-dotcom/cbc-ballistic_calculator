@@ -9,7 +9,7 @@
 double solvepitch(double maxrangeangle, int* ticks, double testpitch, int lbarrel, double dx, double dy, double dz, double base_velocity, double gravity, double drag) {
 
 
-    int iterations = 30;
+    int iterations = 40;
     int projectile_ticks;
     double interpolated_py;
     double high = testpitch;
@@ -48,7 +48,7 @@ double solvepitch(double maxrangeangle, int* ticks, double testpitch, int lbarre
 
         projectile_ticks = 0;
         
-        while(pdistance >= 0 && projectile_ticks < 1000 )   {
+        while(pdistance >= 0 && projectile_ticks < 10000 )   {
             
             old_px = px;
             old_py = py;
@@ -91,8 +91,8 @@ double solvepitch(double maxrangeangle, int* ticks, double testpitch, int lbarre
 
 int main()
 {
-    double maxrange;
-    double maxrangeangle;
+    double maxrange = 0;
+    double maxrangeangle = 0;
     double gravity = 0.05;
     double drag = 0.989949664;
     printf("Input number of charges\n");
@@ -155,17 +155,25 @@ int main()
         double pyvelocity = base_velocity*sin(testpitchrad);
         double px = 0;
         double py = 0;
-        
+        double old_px = 0;
+        double old_py = 0;
+
         while(py >= 0)   {
             
+            old_px = px;
+            old_py = py;
             px+=pxvelocity;
             py+=pyvelocity;
             pxvelocity = drag*pxvelocity;
             pyvelocity = drag*pyvelocity - gravity;
+            
         }
+
+        double t = (0 - old_py) / (py - old_py);
+        double interpolated_px = old_px + t * (px - old_px);
         
-        if(px > maxrange)  {
-            maxrange = px;
+        if(interpolated_px > maxrange)  {
+            maxrange = interpolated_px;
             maxrangeangle = testpitch;
         }
 
@@ -173,7 +181,6 @@ int main()
         
         testpitch+=0.01;
     
-    maxrange = maxrange - dy;
     }
     printf("\nMax range of %lf, roughly at %lf deg\n", maxrange, maxrangeangle);
 
@@ -200,6 +207,6 @@ int main()
     ttt = ticks;
     ttt = ttt/20;
     printf("\nYaw: %lf deg Pitch: %lf deg Time to Target: %d ticks (%lf seconds)", yaw, final_pitch, ticks, ttt);
-    
+
     return 0;
 }
